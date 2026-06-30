@@ -11,8 +11,9 @@ __pycache__/
 # Lab: raw PII — do not commit
 medviet-governance/data/raw/
 
-# Submission archives
+# Submission archives (allow lab submission zip)
 *.zip
+!lab24_submission_*.zip
 
 # OS
 .DS_Store
