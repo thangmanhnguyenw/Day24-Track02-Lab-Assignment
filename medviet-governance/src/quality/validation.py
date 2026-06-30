@@ -1,80 +1,75 @@
 # src/quality/validation.py
+import re
+from pathlib import Path
+
 import pandas as pd
 import great_expectations as gx
 from great_expectations.core.expectation_suite import ExpectationSuite
 
-def build_patient_expectation_suite() -> ExpectationSuite:
-    """
-    TODO: Tạo expectation suite cho anonymized patient data.
-    """
-    context = gx.get_context()
-    suite = context.add_expectation_suite("patient_data_suite")
+RAW_DATA_PATH = Path("data/raw/patients_raw.csv")
+VALID_CONDITIONS = ["Tiểu đường", "Huyết áp cao", "Tim mạch", "Khỏe mạnh"]
+EMAIL_REGEX = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 
-    # Lấy validator
-    df = pd.read_csv("data/raw/patients_raw.csv")
+
+def build_patient_expectation_suite() -> ExpectationSuite:
+    """Tạo expectation suite cho patient data."""
+    context = gx.get_context()
+    suite_name = "patient_data_suite"
+    try:
+        suite = context.add_expectation_suite(suite_name)
+    except Exception:
+        suite = context.get_expectation_suite(suite_name)
+
+    df = pd.read_csv(RAW_DATA_PATH)
     validator = context.sources.pandas_default.read_dataframe(df)
 
-    # --- TASK: Thêm các expectations ---
-
-    # 1. patient_id không được null
     validator.expect_column_values_to_not_be_null("patient_id")
-
-    # 2. TODO: cccd phải có đúng 12 ký tự
-    validator.expect_column_value_lengths_to_equal(
-        column=___,
-        value=___
-    )
-
-    # 3. TODO: ket_qua_xet_nghiem phải trong khoảng [0, 50]
+    validator.expect_column_value_lengths_to_equal(column="cccd", value=12)
     validator.expect_column_values_to_be_between(
-        column=___,
-        min_value=___,
-        max_value=___
+        column="ket_qua_xet_nghiem", min_value=0, max_value=50
     )
-
-    # 4. TODO: benh phải thuộc danh sách hợp lệ
-    valid_conditions = ["Tiểu đường", "Huyết áp cao", "Tim mạch", "Khỏe mạnh"]
     validator.expect_column_values_to_be_in_set(
-        column=___,
-        value_set=___
+        column="benh", value_set=VALID_CONDITIONS
     )
-
-    # 5. TODO: email phải match regex pattern
-    validator.expect_column_values_to_match_regex(
-        column="email",
-        regex=r"___"    # TODO: email regex
-    )
-
-    # 6. TODO: Không được có duplicate patient_id
-    validator.expect_column_values_to_be_unique(column=___)
+    validator.expect_column_values_to_match_regex(column="email", regex=EMAIL_REGEX)
+    validator.expect_column_values_to_be_unique(column="patient_id")
 
     validator.save_expectation_suite()
     return suite
 
 
 def validate_anonymized_data(filepath: str) -> dict:
-    """
-    TODO: Validate anonymized data.
-    Trả về dict: {"success": bool, "failed_checks": list, "stats": dict}
-    """
+    """Validate anonymized data sau pipeline."""
     df = pd.read_csv(filepath)
+    original_df = pd.read_csv(RAW_DATA_PATH)
+
     results = {
         "success": True,
         "failed_checks": [],
         "stats": {
             "total_rows": len(df),
-            "columns": list(df.columns)
-        }
+            "columns": list(df.columns),
+        },
     }
 
-    # Check 1: Không còn CCCD gốc dạng số thuần túy
-    # (sau anonymization, cccd phải là fake hoặc masked)
-    # TODO: implement check
+    original_cccds = set(original_df["cccd"].astype(str))
+    leaked = df["cccd"].astype(str).isin(original_cccds).sum()
+    if leaked > 0:
+        results["success"] = False
+        results["failed_checks"].append(
+            f"Found {leaked} original CCCD values still present after anonymization"
+        )
 
-    # Check 2: Không có null values trong các cột quan trọng
-    # TODO: implement check
+    important_cols = ["patient_id", "benh", "ket_qua_xet_nghiem"]
+    for col in important_cols:
+        if col in df.columns and df[col].isnull().any():
+            results["success"] = False
+            results["failed_checks"].append(f"Null values found in column '{col}'")
 
-    # Check 3: Số rows phải bằng original
-    # TODO: implement check
+    if len(df) != len(original_df):
+        results["success"] = False
+        results["failed_checks"].append(
+            f"Row count mismatch: anonymized={len(df)}, original={len(original_df)}"
+        )
 
     return results

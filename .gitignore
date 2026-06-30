@@ -1,0 +1,19 @@
+# Secrets & keys
+.vault_key
+**/.vault_key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# Lab: raw PII — do not commit
+medviet-governance/data/raw/
+
+# Submission archives
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db

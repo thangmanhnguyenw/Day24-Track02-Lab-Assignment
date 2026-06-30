@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedViet Data Governance — Hướng Dẫn Luồng & Chạy Project</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3f5c;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+      --accent: #3b82f6;
+      --accent2: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --purple: #a78bfa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      display: flex;
+      min-height: 100vh;
+    }
+    nav {
+      width: 280px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    nav h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 1.25rem 0 0.5rem;
+    }
+    nav h2:first-child { margin-top: 0; }
+    nav a {
+      display: block;
+      color: var(--text);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: background 0.15s;
+    }
+    nav a:hover { background: var(--surface2); color: var(--accent); }
+    main {
+      margin-left: 280px;
+      padding: 2.5rem 3rem;
+      max-width: 1100px;
+      flex: 1;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: 1.05rem; }
+    h2 {
+      font-size: 1.5rem;
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+      color: #93c5fd;
+    }
+    h3 { font-size: 1.15rem; margin: 1.5rem 0 0.75rem; color: #a5b4fc; }
+    p { margin-bottom: 1rem; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-grid .card { margin: 0; }
+    .card h4 { color: var(--accent2); margin-bottom: 0.5rem; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-todo { background: #78350f; color: #fde68a; }
+    .badge-done { background: #064e3b; color: #6ee7b7; }
+    .badge-partial { background: #1e3a5f; color: #93c5fd; }
+    pre, code {
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.85rem;
+    }
+    pre {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      margin: 0.75rem 0 1.25rem;
+      line-height: 1.5;
+    }
+    code { color: #79c0ff; }
+    .tree {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      font-family: monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 1.25rem;
+    }
+    .tree .dir { color: #58a6ff; }
+    .tree .file { color: #8b949e; }
+    .tree .key { color: #3fb950; }
+    .tree .comment { color: #6e7681; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.85rem;
+      text-align: left;
+    }
+    th { background: var(--surface2); color: #93c5fd; }
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    .allow { color: var(--accent2); font-weight: 600; }
+    .deny { color: var(--danger); font-weight: 600; }
+    .mermaid {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1rem 0 1.5rem;
+      text-align: center;
+    }
+    .step-list { counter-reset: step; list-style: none; }
+    .step-list li {
+      counter-increment: step;
+      position: relative;
+      padding: 0.75rem 0 0.75rem 3rem;
+      border-left: 2px solid var(--border);
+      margin-left: 1rem;
+    }
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: -1.1rem;
+      top: 0.7rem;
+      width: 2rem;
+      height: 2rem;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .alert {
+      border-left: 4px solid var(--warn);
+      background: rgba(245,158,11,0.08);
+      padding: 0.85rem 1.1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-size: 0.92rem;
+    }
+    .alert-info { border-color: var(--accent); background: rgba(59,130,246,0.08); }
+    .alert-danger { border-color: var(--danger); background: rgba(239,68,68,0.08); }
+    .token { color: #fbbf24; }
+    .role-admin { color: #f87171; }
+    .role-ml { color: #60a5fa; }
+    .role-analyst { color: #a78bfa; }
+    .role-intern { color: #9ca3af; }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { margin-left: 0; padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h2>Tổng quan</h2>
+  <a href="#overview">Bối cảnh & Mục tiêu</a>
+  <a href="#architecture">Kiến trúc thư mục</a>
+  <a href="#pipeline">Luồng dữ liệu tổng thể</a>
+  <a href="#implementation">Chi tiết đã implement</a>
+
+  <h2>8 Phần Lab</h2>
+  <a href="#part1">Phần 1 — Chuẩn bị dữ liệu</a>
+  <a href="#part2">Phần 2 — PII Detection</a>
+  <a href="#part3">Phần 3 — RBAC & API</a>
+  <a href="#part4">Phần 4 — Encryption</a>
+  <a href="#part5">Phần 5 — Data Quality</a>
+  <a href="#part6">Phần 6 — Security Scan</a>
+  <a href="#part7">Phần 7 — OPA Policy</a>
+  <a href="#part8">Phần 8 — Compliance</a>
+
+  <h2>Tham khảo</h2>
+  <a href="#rbac-matrix">Ma trận quyền RBAC</a>
+  <a href="#api">API Endpoints</a>
+  <a href="#docker">Docker Services</a>
+  <a href="#quickstart">Quick Start</a>
+  <a href="#grading">Chấm điểm</a>
+</nav>
+
+<main>
+  <h1>MedViet Data Governance Platform</h1>
+  <p class="subtitle">
+    Lab #24 Extended — AICB-P2T2 · Data Governance &amp; Security for AI Platform<br>
+    Hướng dẫn hiểu luồng hoạt động, chức năng từng module và cách chạy project.
+  </p>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <h2>1. Bối cảnh &amp; Mục tiêu</h2>
+    <div class="card">
+      <p>
+        <strong>MedViet</strong> là startup y tế Việt Nam xử lý hồ sơ bệnh nhân để train mô hình chẩn đoán.
+        Công ty cần đạt chuẩn <strong>NĐ13/2023</strong> và <strong>ISO 27001</strong> trước khi ký hợp đồng đối tác.
+      </p>
+      <p>Nhiệm vụ lab: xây dựng <strong>data governance pipeline</strong> hoàn chỉnh gồm:</p>
+      <ul style="margin-left:1.5rem; margin-bottom:0.5rem;">
+        <li>Phát hiện &amp; ẩn danh hóa PII (Presidio + spaCy tiếng Việt)</li>
+        <li>Kiểm soát truy cập RBAC (Casbin) + ABAC (OPA)</li>
+        <li>Mã hóa envelope encryption (AES-256-GCM)</li>
+        <li>Validation chất lượng dữ liệu (Great Expectations)</li>
+        <li>Security scanning (git-secrets, Bandit, TruffleHog)</li>
+        <li>Compliance checklist NĐ13</li>
+      </ul>
+    </div>
+
+    <div class="alert" style="border-color: var(--accent2); background: rgba(16,185,129,0.1);">
+      <strong>Trạng thái:</strong> Tất cả TODO trong lab đã được hoàn thành.
+      <code>pytest tests/test_pii.py</code> — <strong>6/6 passed</strong>.
+      Encryption vault round-trip OK. API + RBAC + OPA + validation đã implement.
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <h2>2. Kiến trúc thư mục</h2>
+    <div class="tree"><span class="dir">Day24-Track02-Lab-Assignment/</span>
+├── <span class="file">README.md</span>                    <span class="comment"># Đề bài lab đầy đủ (8 phần)</span>
+├── <span class="file">HUONG_DAN_MEDVIET.html</span>       <span class="comment"># File hướng dẫn này</span>
+└── <span class="dir">medviet-governance/</span>            <span class="comment"># Project chính</span>
+    ├── <span class="dir">data/</span>
+    │   ├── <span class="dir">raw/</span>
+    │   │   └── <span class="key">patients_raw.csv</span>       <span class="comment"># Dữ liệu gốc có PII (tạo bằng script)</span>
+    │   └── <span class="dir">processed/</span>
+    │       └── <span class="key">patients_anonymized.csv</span> <span class="comment"># Output sau anonymization</span>
+    ├── <span class="dir">scripts/</span>
+    │   └── <span class="file">generate_data.py</span>         <span class="comment"># Tạo 200 bản ghi giả lập</span>
+    ├── <span class="dir">src/</span>
+    │   ├── <span class="dir">pii/</span>
+    │   │   ├── <span class="file">detector.py</span>            <span class="comment"># Presidio + custom VN recognizers</span>
+    │   │   └── <span class="file">anonymizer.py</span>          <span class="comment"># Pipeline ẩn danh hóa DataFrame</span>
+    │   ├── <span class="dir">access/</span>
+    │   │   ├── <span class="file">rbac.py</span>                <span class="comment"># Casbin enforcer + FastAPI deps</span>
+    │   │   ├── <span class="file">policy.csv</span>             <span class="comment"># Role → resource → action</span>
+    │   │   └── <span class="file">model.conf</span>             <span class="comment"># Casbin model definition</span>
+    │   ├── <span class="dir">encryption/</span>
+    │   │   └── <span class="file">vault.py</span>               <span class="comment"># Envelope encryption (KEK/DEK)</span>
+    │   ├── <span class="dir">quality/</span>
+    │   │   └── <span class="file">validation.py</span>          <span class="comment"># Great Expectations suite</span>
+    │   └── <span class="dir">api/</span>
+    │       └── <span class="file">main.py</span>                <span class="comment"># FastAPI REST endpoints</span>
+    ├── <span class="dir">policies/</span>
+    │   └── <span class="file">opa_policy.rego</span>          <span class="comment"># OPA ABAC rules</span>
+    ├── <span class="dir">tests/</span>
+    │   └── <span class="file">test_pii.py</span>              <span class="comment"># pytest cho PII pipeline</span>
+    ├── <span class="dir">.github/hooks/</span>
+    │   └── <span class="file">pre-commit</span>               <span class="comment"># git-secrets + Bandit + pip-audit</span>
+    ├── <span class="file">compliance_checklist.md</span>      <span class="comment"># NĐ13 checklist</span>
+    ├── <span class="file">docker-compose.yml</span>             <span class="comment"># MLflow + Prometheus + Grafana</span>
+    └── <span class="file">requirements.txt</span></div>
+
+    <h3>Vai trò từng module</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h4>src/pii/</h4>
+        <p>Phát hiện PII tiếng Việt (CCCD, SĐT, tên, email) và ẩn danh hóa trước khi dùng cho ML training.</p>
+        <span class="badge badge-done">Đã hoàn thành</span>
+      </div>
+      <div class="card">
+        <h4>src/access/</h4>
+        <p>Định nghĩa ai được làm gì với tài nguyên nào. Casbin enforce policy tại runtime.</p>
+        <span class="badge badge-done">rbac.py + policy.csv</span>
+      </div>
+      <div class="card">
+        <h4>src/api/</h4>
+        <p>REST API expose dữ liệu theo role. Mỗi endpoint gắn decorator <code>@require_permission</code>.</p>
+        <span class="badge badge-done">4 endpoints + /health</span>
+      </div>
+      <div class="card">
+        <h4>src/encryption/</h4>
+        <p>Mã hóa dữ liệu nhạy cảm bằng envelope encryption: KEK bọc DEK, DEK mã hóa data.</p>
+        <span class="badge badge-done">AES-256-GCM round-trip OK</span>
+      </div>
+      <div class="card">
+        <h4>src/quality/</h4>
+        <p>Kiểm tra schema, range, uniqueness trước/sau anonymization bằng Great Expectations.</p>
+        <span class="badge badge-done">6 expectations + validate_anonymized_data</span>
+      </div>
+      <div class="card">
+        <h4>policies/</h4>
+        <p>OPA Rego rules — lớp policy bổ sung (ABAC), ví dụ chặn export data ra ngoài VN.</p>
+        <span class="badge badge-done">admin/ml/analyst/intern rules</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section id="pipeline">
+    <h2>3. Luồng dữ liệu tổng thể</h2>
+    <p>Đây là luồng end-to-end từ khi tạo dữ liệu đến khi user truy cập qua API:</p>
+
+    <div class="mermaid">
+flowchart TB
+    subgraph GEN["Phần 1 — Data Generation"]
+        A[scripts/generate_data.py] --> B[(data/raw/patients_raw.csv)]
+    end
+
+    subgraph PII["Phần 2 — PII Pipeline"]
+        B --> C[detector.py<br/>Presidio Analyzer]
+        C --> D[anonymizer.py<br/>MedVietAnonymizer]
+        D --> E[(data/processed/patients_anonymized.csv)]
+    end
+
+    subgraph ENC["Phần 4 — Encryption (tùy chọn)"]
+        B --> F[vault.py SimpleVault]
+        F --> G[Encrypted column / payload]
+    end
+
+    subgraph QUAL["Phần 5 — Quality"]
+        E --> H[validation.py<br/>Great Expectations]
+        H --> I{Pass?}
+        I -->|Yes| J[Ready for ML]
+        I -->|No| K[failed_checks report]
+    end
+
+    subgraph API["Phần 3 — API Layer ✅"]
+        L[Client Request<br/>Bearer token] --> M[get_current_user<br/>401 if invalid]
+        M --> P[require_permission<br/>Casbin enforce username]
+        P --> Q{Allowed?}
+        Q -->|403| R[Forbidden]
+        Q -->|Yes| S{Endpoint}
+        S -->|/raw| B
+        S -->|/anonymized| D
+        S -->|/metrics| T[Aggregated stats]
+        D --> E
+    end
+
+  subgraph SEC["Phần 6-7 — Security & Policy"]
+        U[pre-commit hook] --> V[git-secrets + Bandit]
+        W[opa_policy.rego] --> X[ABAC decisions]
+    end
+
+    style B fill:#1e3a5f,stroke:#3b82f6
+    style E fill:#064e3b,stroke:#10b981
+    style O fill:#7f1d1d,stroke:#ef4444
+    style R fill:#7f1d1d,stroke:#ef4444
+    </div>
+
+    <h3>Cột dữ liệu &amp; phân loại PII</h3>
+    <table>
+      <thead>
+        <tr><th>Cột</th><th>Loại</th><th>Xử lý</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>patient_id</td><td>Pseudonym</td><td class="allow">Giữ nguyên</td></tr>
+        <tr><td>ho_ten, dia_chi, email</td><td>PII text</td><td>Anonymize qua <code>anonymize_text()</code></td></tr>
+        <tr><td>cccd, so_dien_thoai</td><td>PII structured</td><td>Replace bằng fake data</td></tr>
+        <tr><td>ngay_sinh, bac_si_phu_trach, ngay_kham</td><td>PII / quasi-identifier</td><td>Anonymize hoặc generalize</td></tr>
+        <tr><td>benh, ket_qua_xet_nghiem</td><td>Clinical (non-PII)</td><td class="allow">Giữ nguyên — cần cho ML</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- IMPLEMENTATION DETAILS -->
+  <section id="implementation">
+    <h2>4. Chi tiết Implementation (đã chỉnh sửa)</h2>
+    <p>Mục này mô tả <strong>chính xác những gì đã code</strong> trong từng file, kèm quyết định kỹ thuật quan trọng.</p>
+
+    <h3>4.1 PII Detection — <code>src/pii/detector.py</code></h3>
+    <div class="card">
+      <table>
+        <thead><tr><th>Task</th><th>Giải pháp đã implement</th></tr></thead>
+        <tbody>
+          <tr><td>CCCD regex</td><td><code>\b\d{12}\b</code> — khớp đúng 12 chữ số</td></tr>
+          <tr><td>Phone regex</td><td><code>\b0[35789]\d{8}\b</code> + fallback <code>\b[35789]\d{8}\b</code> (khi CSV mất số 0 đầu)</td></tr>
+          <tr><td>Email regex</td><td>PatternRecognizer riêng cho <code>EMAIL_ADDRESS</code></td></tr>
+          <tr><td>Tên VN</td><td>Entity <code>VN_NAME</code> → map sang <code>PERSON</code> khi anonymize</td></tr>
+          <tr><td>spaCy model</td><td>Ưu tiên <code>vi_core_news_lg</code>, fallback <code>en_core_web_sm</code>; alias <code>vi→en</code> NLP engine</td></tr>
+          <tr><td>Chuẩn hóa CSV</td><td><code>_normalize_pii_text()</code> — pad CCCD 12 số, thêm 0 cho SĐT 9 chữ số</td></tr>
+          <tr><td>Đa ngôn ngữ</td><td>Mỗi PatternRecognizer đăng ký cả <code>vi</code> và <code>en</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code># detect_pii() — entities được quét
+PII_ENTITIES = ["PERSON", "EMAIL_ADDRESS", "VN_CCCD", "VN_PHONE", "VN_NAME"]
+
+# Kết quả test: detection rate ≥ 95% trên 50 rows đầu</code></pre>
+
+    <h3>4.2 Anonymization — <code>src/pii/anonymizer.py</code></h3>
+    <div class="card">
+      <p><strong>3 strategies</strong> trong <code>anonymize_text()</code>:</p>
+      <ul style="margin-left:1.5rem">
+        <li><code>replace</code> — Faker vi_VN (tên, email, CCCD, SĐT giả)</li>
+        <li><code>mask</code> — ký tự <code>*</code> che toàn bộ entity</li>
+        <li><code>hash</code> — SHA-256 one-way hash</li>
+      </ul>
+      <p><strong>anonymize_dataframe()</strong> xử lý từng cột:</p>
+      <table>
+        <thead><tr><th>Cột</th><th>Cách xử lý</th></tr></thead>
+        <tbody>
+          <tr><td>ho_ten, dia_chi, email, bac_si_phu_trach</td><td><code>anonymize_text(replace)</code></td></tr>
+          <tr><td>cccd, so_dien_thoai</td><td>Replace trực tiếp bằng fake (không qua Presidio)</td></tr>
+          <tr><td>ngay_sinh</td><td>Generalize — chỉ giữ năm sinh</td></tr>
+          <tr><td>patient_id, benh, ket_qua_xet_nghiem</td><td class="allow">Giữ nguyên</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.3 RBAC — <code>src/access/rbac.py</code> + <code>policy.csv</code></h3>
+    <div class="card">
+      <p><code>get_current_user()</code> parse <code>Authorization: Bearer token-xxx</code> → HTTP 401 nếu thiếu/sai token.</p>
+      <p><code>require_permission()</code> gọi <code>enforcer.enforce(username, resource, action)</code> — dùng <strong>username</strong> (alice, bob...) không phải role, vì Casbin matcher dùng <code>g(user, role)</code>.</p>
+      <p>Đã bổ sung policy cho admin: <code>training_data:read</code>, <code>aggregated_metrics:read</code> và ml_engineer: <code>aggregated_metrics:read</code>.</p>
+    </div>
+
+    <h3>4.4 FastAPI — <code>src/api/main.py</code></h3>
+    <div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant API as FastAPI
+    participant RBAC as Casbin
+    participant PII as MedVietAnonymizer
+    participant CSV as patients_raw.csv
+
+    C->>API: GET /api/patients/anonymized<br/>Bearer token-bob
+    API->>RBAC: enforce(bob, training_data, read)
+    RBAC-->>API: true
+    API->>CSV: pd.read_csv()
+    API->>PII: anonymize_dataframe(df)
+    PII-->>API: df_anon
+    API->>API: save data/processed/patients_anonymized.csv
+    API-->>C: 200 JSON (10 records)
+    </div>
+
+    <h3>4.5 Encryption — <code>src/encryption/vault.py</code></h3>
+    <pre><code># encrypt_data flow (đã implement):
+plaintext_dek, encrypted_dek = generate_dek()   # DEK bọc bởi KEK
+ciphertext = AESGCM(plaintext_dek).encrypt(nonce, plaintext.encode())
+del plaintext_dek                                # xóa DEK khỏi memory
+return {encrypted_dek, ciphertext, algorithm}    # base64 encoded
+
+# decrypt_data: decrypt_dek → decrypt ciphertext → plaintext string</code></pre>
+
+    <h3>4.6 Data Quality — <code>src/quality/validation.py</code></h3>
+    <table>
+      <thead><tr><th>#</th><th>Expectation</th><th>Column / Rule</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>not null</td><td>patient_id</td></tr>
+        <tr><td>2</td><td>length = 12</td><td>cccd</td></tr>
+        <tr><td>3</td><td>between 0–50</td><td>ket_qua_xet_nghiem</td></tr>
+        <tr><td>4</td><td>in set</td><td>benh (4 loại bệnh)</td></tr>
+        <tr><td>5</td><td>match regex</td><td>email</td></tr>
+        <tr><td>6</td><td>unique</td><td>patient_id</td></tr>
+      </tbody>
+    </table>
+    <p><code>validate_anonymized_data()</code> kiểm tra: không còn CCCD gốc, không null ở cột quan trọng, số rows khớp original.</p>
+
+    <h3>4.7 OPA — <code>policies/opa_policy.rego</code></h3>
+    <ul style="margin-left:1.5rem; margin-bottom:1rem">
+      <li><strong>data_analyst:</strong> read <code>aggregated_metrics</code>, write <code>reports</code></li>
+      <li><strong>intern:</strong> read/write <code>sandbox_data</code> only</li>
+      <li><strong>deny:</strong> export <code>restricted</code> data ra ngoài VN</li>
+    </ul>
+
+    <h3>4.8 Fix quan trọng — CSV &amp; generate_data.py</h3>
+    <div class="alert alert-info">
+      Pandas đọc CCCD/SĐT dạng số → mất số 0 đầu → regex không khớp. Đã fix:
+      <code>df["cccd"] = df["cccd"].astype(str).str.zfill(12)</code> khi generate,
+      và <code>dtype={"cccd": str, "so_dien_thoai": str}</code> khi đọc trong tests.
+    </div>
+  </section>
+
+  <!-- PART 1 -->
+  <section id="part1">
+    <h2>Phần 1 — Chuẩn bị dữ liệu (15 phút)</h2>
+    <div class="card">
+      <h4>Chức năng</h4>
+      <p>Script <code>scripts/generate_data.py</code> dùng Faker (locale <code>vi_VN</code>) tạo 200 bản ghi bệnh nhân giả với đầy đủ PII Việt Nam.</p>
+    </div>
+
+    <h3>Cách chạy</h3>
+    <pre><code>cd medviet-governance
+pip install pandas faker
+python scripts/generate_data.py</code></pre>
+
+    <ol class="step-list">
+      <li>Chạy script → tạo <code>data/raw/patients_raw.csv</code></li>
+      <li>Kiểm tra output: <code>head data/raw/patients_raw.csv</code></li>
+      <li>Liệt kê các cột chứa PII: ho_ten, cccd, ngay_sinh, so_dien_thoai, email, dia_chi, bac_si_phu_trach</li>
+    </ol>
+  </section>
+
+  <!-- PART 2 -->
+  <section id="part2">
+    <h2>Phần 2 — PII Detection &amp; Anonymization (45 phút)</h2>
+
+    <div class="mermaid">
+flowchart LR
+    T[Input text/cell] --> A[build_vietnamese_analyzer]
+    A --> B[CCCD Recognizer<br/>12 digits regex]
+    A --> C[Phone Recognizer<br/>0x xxxxxxxx]
+    A --> D[spaCy vi_core_news_lg<br/>PERSON, EMAIL]
+    T --> E[detect_pii]
+    B & C & D --> E
+    E --> F{Entities found?}
+    F -->|No| G[Return original]
+    F -->|Yes| H[AnonymizerEngine]
+    H --> I{Strategy}
+    I -->|replace| J[Fake data Faker]
+    I -->|mask| K[N****** V** A]
+    I -->|hash| L[SHA-256]
+    J & K & L --> M[Anonymized output]
+    </div>
+
+    <h3>Cài đặt</h3>
+    <pre><code>pip install presidio-analyzer presidio-anonymizer spacy faker
+python -m spacy download vi_core_news_lg</code></pre>
+
+    <h3>File cần hoàn thành</h3>
+    <table>
+      <thead><tr><th>File</th><th>Task chính</th></tr></thead>
+      <tbody>
+        <tr><td><code>detector.py</code></td><td>Regex CCCD 12 số, regex SĐT VN, spaCy model, <code>detect_pii()</code></td></tr>
+        <tr><td><code>anonymizer.py</code></td><td>3 strategies (replace/mask/hash), <code>anonymize_dataframe()</code>, detection rate ≥ 95%</td></tr>
+        <tr><td><code>tests/test_pii.py</code></td><td>Assert CCCD/phone/email detected, PII không còn trong output</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Chạy test</h3>
+    <pre><code>cd medviet-governance
+pytest tests/test_pii.py -v --tb=short</code></pre>
+
+    <div class="alert">
+      <strong>Mục tiêu quan trọng:</strong> <code>calculate_detection_rate()</code> phải đạt <strong>≥ 95%</strong> trên 50 rows đầu của dataset.
+    </div>
+  </section>
+
+  <!-- PART 3 -->
+  <section id="part3">
+    <h2>Phần 3 — RBAC với Casbin &amp; FastAPI (45 phút)</h2>
+
+    <div class="mermaid">
+sequenceDiagram
+    participant C as Client
+    participant API as FastAPI main.py
+    participant Auth as get_current_user
+    participant RBAC as require_permission
+    participant CB as Casbin Enforcer
+    participant Data as CSV / Anonymizer
+
+    C->>API: GET /api/patients/raw<br/>Authorization: Bearer token-bob
+    API->>Auth: Parse Bearer token
+    Auth->>Auth: Lookup MOCK_USERS
+    Auth-->>API: {username: bob, role: ml_engineer}
+    API->>RBAC: Check patient_data + read
+    RBAC->>CB: enforce(ml_engineer, patient_data, read)
+    CB-->>RBAC: false
+    RBAC-->>C: 403 Forbidden
+
+    C->>API: GET /api/patients/raw<br/>Authorization: Bearer token-alice
+    Auth-->>API: {username: alice, role: admin}
+    RBAC->>CB: enforce(admin, patient_data, read)
+    CB-->>RBAC: true
+    API->>Data: Load patients_raw.csv
+    Data-->>C: 200 JSON (10 records)
+    </div>
+
+    <h3>4 User giả lập (Mock tokens)</h3>
+    <table>
+      <thead><tr><th>Token</th><th>User</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td class="token">token-alice</td><td>alice</td><td class="role-admin">admin</td></tr>
+        <tr><td class="token">token-bob</td><td>bob</td><td class="role-ml">ml_engineer</td></tr>
+        <tr><td class="token">token-carol</td><td>carol</td><td class="role-analyst">data_analyst</td></tr>
+        <tr><td class="token">token-dave</td><td>dave</td><td class="role-intern">intern</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Cách chạy API</h3>
+    <pre><code>cd medviet-governance
+pip install -r requirements.txt
+uvicorn src.api.main:app --reload</code></pre>
+    <p>Mở Swagger UI: <a href="http://localhost:8000/docs" style="color:#60a5fa">http://localhost:8000/docs</a></p>
+
+    <h3>Test với curl</h3>
+    <pre><code># Bob (ml_engineer) đọc raw → 403
+curl -H "Authorization: Bearer token-bob" http://localhost:8000/api/patients/raw
+
+# Alice (admin) đọc raw → 200
+curl -H "Authorization: Bearer token-alice" http://localhost:8000/api/patients/raw
+
+# Bob xóa patient → 403
+curl -X DELETE -H "Authorization: Bearer token-bob" http://localhost:8000/api/patients/abc123
+
+# Health check (không cần token)
+curl http://localhost:8000/health</code></pre>
+  </section>
+
+  <!-- PART 4 -->
+  <section id="part4">
+    <h2>Phần 4 — Encryption Envelope (30 phút)</h2>
+
+    <div class="mermaid">
+flowchart TB
+    subgraph KEK_Layer["Master Key Layer"]
+        MK[.vault_key<br/>KEK 256-bit] 
+    end
+    subgraph DEK_Layer["Data Key Layer"]
+        DEK[Random DEK 32 bytes]
+        EDEK[encrypted_dek = nonce + AESGCM_KEK encrypt DEK]
+    end
+    subgraph DATA_Layer["Data Layer"]
+        PT[Plaintext string]
+        CT[ciphertext = nonce + AESGCM_DEK encrypt data]
+    end
+    MK --> EDEK
+    DEK --> EDEK
+    DEK --> CT
+    PT --> CT
+    CT --> PAYLOAD["{encrypted_dek, ciphertext, algorithm}"]
+    </div>
+
+    <h3>Luồng encrypt / decrypt</h3>
+    <ol class="step-list">
+      <li><strong>encrypt_data():</strong> Generate DEK mới → encrypt data bằng DEK → encrypt DEK bằng KEK → xóa plaintext DEK khỏi memory → trả payload base64</li>
+      <li><strong>decrypt_data():</strong> Decode base64 → decrypt DEK bằng KEK → decrypt data bằng DEK → trả plaintext</li>
+      <li><strong>encrypt_column():</strong> Áp dụng encrypt_data cho từng cell trong cột DataFrame</li>
+    </ol>
+
+    <h3>Test trong Python shell</h3>
+    <pre><code>cd medviet-governance
+python
+>>> from src.encryption.vault import SimpleVault
+>>> vault = SimpleVault()
+>>> original = "Nguyen Van A - CCCD: 012345678901"
+>>> encrypted = vault.encrypt_data(original)
+>>> decrypted = vault.decrypt_data(encrypted)
+>>> assert decrypted == original</code></pre>
+
+    <div class="alert alert-danger">
+      <strong>Cảnh báo bảo mật:</strong> File <code>.vault_key</code> chỉ dùng local dev. Production phải dùng HSM/KMS (AWS KMS, Vault...). <strong>KHÔNG commit</strong> file này.
+    </div>
+  </section>
+
+  <!-- PART 5 -->
+  <section id="part5">
+    <h2>Phần 5 — Data Quality Validation (20 phút)</h2>
+    <p>Module <code>src/quality/validation.py</code> dùng Great Expectations để đảm bảo dữ liệu đúng schema trước khi đưa vào pipeline ML.</p>
+
+    <h3>Expectations cần implement</h3>
+    <table>
+      <thead><tr><th>#</th><th>Rule</th><th>Column</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Not null</td><td>patient_id</td></tr>
+        <tr><td>2</td><td>Length = 12</td><td>cccd</td></tr>
+        <tr><td>3</td><td>Between 0–50</td><td>ket_qua_xet_nghiem</td></tr>
+        <tr><td>4</td><td>In valid set</td><td>benh (4 loại bệnh)</td></tr>
+        <tr><td>5</td><td>Match email regex</td><td>email</td></tr>
+        <tr><td>6</td><td>Unique</td><td>patient_id</td></tr>
+      </tbody>
+    </table>
+
+    <p><code>validate_anonymized_data()</code> kiểm tra thêm: không còn CCCD gốc, không null ở cột quan trọng, số rows khớp original.</p>
+  </section>
+
+  <!-- PART 6 -->
+  <section id="part6">
+    <h2>Phần 6 — Security Scanning (20 phút)</h2>
+
+    <div class="mermaid">
+flowchart LR
+    GIT[git commit] --> HOOK[pre-commit hook]
+    HOOK --> GS[git-secrets scan]
+    HOOK --> BD[Bandit SAST]
+    HOOK --> PA[pip-audit CVEs]
+    GS -->|secrets found| BLOCK1[❌ Block commit]
+    BD -->|issues found| BLOCK2[❌ Block commit]
+    PA -->|vulns found| WARN[⚠️ Warn / Block]
+    GS & BD & PA -->|pass| OK[✅ Commit allowed]
+    </div>
+
+    <h3>Setup git-secrets</h3>
+    <pre><code>cd medviet-governance
+git init
+git secrets --install
+git secrets --add 'CCCD[:\s]+\d{12}'
+git secrets --add 'password\s*=\s*["\'][^"\']+["\']'
+git secrets --register-aws
+
+# Copy pre-commit hook
+chmod +x .github/hooks/pre-commit
+cp .github/hooks/pre-commit .git/hooks/pre-commit</code></pre>
+
+    <h3>Chạy scan thủ công</h3>
+    <pre><code>bandit -r src/ -ll
+pip-audit --desc on
+trufflehog git file://. --only-verified</code></pre>
+  </section>
+
+  <!-- PART 7 -->
+  <section id="part7">
+    <h2>Phần 7 — OPA Policy (15 phút)</h2>
+    <p>File <code>policies/opa_policy.rego</code> định nghĩa policy dạng ABAC, bổ sung cho Casbin RBAC.</p>
+
+    <table>
+      <thead><tr><th>Rule</th><th>Hành vi</th></tr></thead>
+      <tbody>
+        <tr><td>default allow = false</td><td>Deny by default</td></tr>
+        <tr><td>admin</td><td class="allow">Allow tất cả</td></tr>
+        <tr><td>ml_engineer</td><td class="allow">read/write training_data, model_artifacts</td></tr>
+        <tr><td>ml_engineer + delete production_data</td><td class="deny">Explicit deny</td></tr>
+        <tr><td>data_analyst</td><td class="allow">read aggregated_metrics, write reports (TODO)</td></tr>
+        <tr><td>intern</td><td class="allow">sandbox only (TODO)</td></tr>
+        <tr><td>restricted + destination ≠ VN</td><td class="deny">Chặn export ra ngoài VN</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Test OPA</h3>
+    <pre><code>echo '{"user":{"role":"ml_engineer"},"resource":"production_data","action":"delete"}' \
+  | opa eval -d policies/opa_policy.rego -I "data.medviet.data_access.allow"
+# Expected: false</code></pre>
+  </section>
+
+  <!-- PART 8 -->
+  <section id="part8">
+    <h2>Phần 8 — Compliance Checklist NĐ13</h2>
+    <p>File <code>medviet-governance/compliance_checklist.md</code> map yêu cầu pháp lý với technical controls.</p>
+
+    <table>
+      <thead><tr><th>Hạng mục</th><th>Nội dung</th><th>Trạng thái</th></tr></thead>
+      <tbody>
+        <tr><td>A. Data Localization</td><td>Data &amp; backup trong lãnh thổ VN</td><td>⬜ Checklist</td></tr>
+        <tr><td>B. Explicit Consent</td><td>Consent trước AI training, right to erasure</td><td>⬜ Checklist</td></tr>
+        <tr><td>C. Breach Notification</td><td>IR plan, alert, báo cáo trong 72h</td><td>⬜ Checklist</td></tr>
+        <tr><td>D. DPO</td><td>Bổ nhiệm Data Protection Officer</td><td>⬜ Checklist</td></tr>
+        <tr><td>E. PII anonymization</td><td>Presidio pipeline</td><td>✅ Done (khi implement xong)</td></tr>
+        <tr><td>E. Access control</td><td>Casbin + OPA</td><td>✅ Done (khi implement xong)</td></tr>
+        <tr><td>E. Encryption</td><td>AES-256 at rest, TLS in transit</td><td>🚧 In Progress</td></tr>
+        <tr><td>E. Audit logging</td><td>CloudTrail + API logs</td><td>⬜ Todo — cần mô tả solution</td></tr>
+        <tr><td>E. Breach detection</td><td>Prometheus monitoring</td><td>⬜ Todo — cần mô tả solution</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- RBAC MATRIX -->
+  <section id="rbac-matrix">
+    <h2>Ma trận quyền RBAC (Casbin policy.csv)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>patient_data</th>
+          <th>training_data</th>
+          <th>aggregated_metrics</th>
+          <th>model_artifacts</th>
+          <th>sandbox_data</th>
+          <th>reports</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="role-admin">admin</td>
+          <td class="allow">read, write, delete</td>
+          <td class="allow">(via admin)</td>
+          <td class="allow">(via admin)</td>
+          <td class="allow">read, write</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="role-ml">ml_engineer</td>
+          <td class="deny">❌ no raw PII</td>
+          <td class="allow">read</td>
+          <td>—</td>
+          <td class="allow">read, write</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="role-analyst">data_analyst</td>
+          <td class="deny">❌ no raw PII</td>
+          <td class="deny">❌</td>
+          <td class="allow">read</td>
+          <td>—</td>
+          <td>—</td>
+          <td class="allow">write</td>
+        </tr>
+        <tr>
+          <td class="role-intern">intern</td>
+          <td class="deny">❌ no production</td>
+          <td class="deny">❌</td>
+          <td class="deny">❌</td>
+          <td class="deny">❌</td>
+          <td class="allow">read, write</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- API -->
+  <section id="api">
+    <h2>API Endpoints</h2>
+    <table>
+      <thead>
+        <tr><th>Method</th><th>Path</th><th>Permission</th><th>Ai được dùng</th><th>Mô tả</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>GET</td>
+          <td>/health</td>
+          <td>—</td>
+          <td>Public</td>
+          <td>Health check, không cần auth</td>
+        </tr>
+        <tr>
+          <td>GET</td>
+          <td>/api/patients/raw</td>
+          <td>patient_data + read</td>
+          <td class="role-admin">admin</td>
+          <td>10 records đầu từ CSV gốc (có PII)</td>
+        </tr>
+        <tr>
+          <td>GET</td>
+          <td>/api/patients/anonymized</td>
+          <td>training_data + read</td>
+          <td class="role-admin">admin</td>, <td class="role-ml">ml_engineer</td>
+          <td>Load raw → anonymize → trả JSON</td>
+        </tr>
+        <tr>
+          <td>GET</td>
+          <td>/api/metrics/aggregated</td>
+          <td>aggregated_metrics + read</td>
+          <td>admin, ml_engineer, data_analyst</td>
+          <td>Thống kê theo loại bệnh (không PII)</td>
+        </tr>
+        <tr>
+          <td>DELETE</td>
+          <td>/api/patients/{id}</td>
+          <td>patient_data + delete</td>
+          <td class="role-admin">admin only</td>
+          <td>Xóa bệnh nhân — role khác → 403</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- DOCKER -->
+  <section id="docker">
+    <h2>Docker Services (Monitoring &amp; MLflow)</h2>
+    <p><code>docker-compose.yml</code> khởi chạy 3 service hỗ trợ observability (dùng cho compliance audit logging &amp; breach detection):</p>
+
+    <table>
+      <thead><tr><th>Service</th><th>Port</th><th>Mục đích</th></tr></thead>
+      <tbody>
+        <tr><td>MLflow</td><td>5000</td><td>Tracking ML experiments &amp; model artifacts</td></tr>
+        <tr><td>Prometheus</td><td>9090</td><td>Thu metrics, anomaly detection</td></tr>
+        <tr><td>Grafana</td><td>3000</td><td>Dashboard (admin/admin)</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>cd medviet-governance
+docker-compose up -d</code></pre>
+  </section>
+
+  <!-- QUICKSTART -->
+  <section id="quickstart">
+    <h2>Quick Start — Chạy project (đã verify)</h2>
+
+    <ol class="step-list">
+      <li>
+        <strong>Kích hoạt môi trường ảo</strong>
+        <pre><code>cd medviet-governance
+.\.venv\Scripts\Activate.ps1</code></pre>
+      </li>
+      <li>
+        <strong>Cài dependencies + spaCy model</strong>
+        <pre><code>pip install -r requirements.txt
+pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl</code></pre>
+        <p style="margin-top:0.5rem;color:var(--muted);font-size:0.9rem">Python 3.14 chưa hỗ trợ <code>vi_core_news_lg</code> — code tự fallback sang <code>en_core_web_sm</code> + pattern recognizers VN.</p>
+      </li>
+      <li>
+        <strong>Tạo dữ liệu giả (200 bệnh nhân)</strong>
+        <pre><code>python scripts/generate_data.py</code></pre>
+      </li>
+      <li>
+        <strong>Chạy tests PII — kỳ vọng 6/6 passed</strong>
+        <pre><code>pytest tests/test_pii.py -v --tb=short</code></pre>
+      </li>
+      <li>
+        <strong>Test encryption vault</strong>
+        <pre><code>python -c "from src.encryption.vault import SimpleVault; v=SimpleVault(); o='test'; e=v.encrypt_data(o); assert v.decrypt_data(e)==o; print('OK')"</code></pre>
+      </li>
+      <li>
+        <strong>Khởi động API</strong>
+        <pre><code>uvicorn src.api.main:app --reload</code></pre>
+        <p style="margin-top:0.5rem">Swagger UI: <a href="http://localhost:8000/docs" style="color:#60a5fa">http://localhost:8000/docs</a></p>
+      </li>
+      <li>
+        <strong>Test API với curl (PowerShell)</strong>
+        <pre><code># Admin đọc raw → 200
+curl -H "Authorization: Bearer token-alice" http://localhost:8000/api/patients/raw
+
+# ML engineer đọc raw → 403
+curl -H "Authorization: Bearer token-bob" http://localhost:8000/api/patients/raw
+
+# ML engineer đọc anonymized → 200
+curl -H "Authorization: Bearer token-bob" http://localhost:8000/api/patients/anonymized
+
+# Metrics (data analyst)
+curl -H "Authorization: Bearer token-carol" http://localhost:8000/api/metrics/aggregated
+
+# Chỉ admin xóa được
+curl -X DELETE -H "Authorization: Bearer token-alice" http://localhost:8000/api/patients/abc123</code></pre>
+      </li>
+      <li>
+        <strong>(Tùy chọn) Docker monitoring</strong>
+        <pre><code>docker-compose up -d</code></pre>
+      </li>
+    </ol>
+
+    <div class="alert alert-danger">
+      <strong>KHÔNG nộp:</strong> <code>data/raw/</code>, <code>.vault_key</code>, hoặc file chứa credentials thật.
+    </div>
+  </section>
+
+  <!-- GRADING -->
+  <section id="grading">
+    <h2>Tiêu chí chấm điểm (100đ, pass ≥ 70đ)</h2>
+    <table>
+      <thead><tr><th>Hạng mục</th><th>Điểm</th><th>Tiêu chí</th></tr></thead>
+      <tbody>
+        <tr><td>PII Detection</td><td>25</td><td>Detection rate ≥ 95%; CCCD + phone + email detect được — <span class="allow">✅ passed</span></td></tr>
+        <tr><td>Anonymization</td><td>20</td><td>PII gốc không còn output; non-PII columns giữ nguyên — <span class="allow">✅ passed</span></td></tr>
+        <tr><td>RBAC API</td><td>20</td><td>4 roles đúng; 403 đúng chỗ — <span class="allow">✅ implemented</span></td></tr>
+        <tr><td>Encryption</td><td>15</td><td>Envelope encryption round-trip OK — <span class="allow">✅ verified</span></td></tr>
+        <tr><td>Security Audit</td><td>10</td><td>git-secrets hook chặn credential; Bandit report</td></tr>
+        <tr><td>Compliance Checklist</td><td>10</td><td>NĐ13 mapping đầy đủ, technical controls cụ thể</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    MedViet Data Governance Lab Guide · Cập nhật sau khi hoàn thành implementation ·
+    pytest 6/6 passed · Python 3.14 + en_core_web_sm fallback ·
+    Mở file bằng trình duyệt (Chrome/Edge). Cần internet lần đầu cho Mermaid.
+  </footer>
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1e3a5f',
+      primaryTextColor: '#e8edf4',
+      primaryBorderColor: '#3b82f6',
+      lineColor: '#8b9cb3',
+      secondaryColor: '#243044',
+      tertiaryColor: '#0f1419'
+    },
+    flowchart: { curve: 'basis' }
+  });
+</script>
+</body>
+</html>

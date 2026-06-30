@@ -29,6 +29,8 @@ def generate_patients(n=200):
     return pd.DataFrame(records)
 
 df = generate_patients()
+df["cccd"] = df["cccd"].astype(str).str.zfill(12)
+df["so_dien_thoai"] = df["so_dien_thoai"].astype(str)
 df.to_csv("data/raw/patients_raw.csv", index=False)
 print(f"Generated {len(df)} patient records")
 print(df.head(3))
